@@ -2,19 +2,15 @@
 
 load data
 ```{r}
-data <- read.csv("dataset/train.csv")
+data <- read.csv("dataset/output.csv")
 data
 ```
 
-Experiment 1) How does sentiment analysis perform compared to the ground-truth?
-
-Experiment 2) How does stance detection perform compared to the ground-truth?
-
-Experiment 3) How much overlap is there between ground-truth sentiment and stance?
+Pre-process
 ```{r}
-
 stance <- data$Stance
 sentiment <- data$Sentiment
+predicted_sentiment <- data$sentimentVader
 
 stance <- replace(stance, stance=="FAVOR", 1)
 stance <- replace(stance, stance=="NONE", 0)
@@ -26,6 +22,22 @@ sentiment <- replace(sentiment, sentiment=="other", 0)
 sentiment <- replace(sentiment, sentiment=="pos", 1)
 sentiment <- as.numeric(sentiment)
 
+predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment<0, -1)
+predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment>0, 1)
+predicted_sentiment <- as.numeric(predicted_sentiment)
+```
+
+EXPERIMENTS
+
+Experiment 1) How does sentiment analysis perform compared to the ground-truth?
+```{r}
+cat(sum(sentiment == predicted_sentiment) / length(sentiment), "% accuracy", sep='')
+```
+
+Experiment 2) How does stance detection perform compared to the ground-truth?
+
+Experiment 3) How much overlap is there between ground-truth sentiment and stance?
+```{r}
 cat(sum(stance == sentiment) / length(stance), "% overlap", sep='')
 ```
 
