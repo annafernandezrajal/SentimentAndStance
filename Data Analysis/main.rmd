@@ -2,7 +2,7 @@
 
 load data
 ```{r}
-data <- read.csv("dataset/output.csv")
+data <- read.csv("Data Analysis/dataset/output.csv")
 data
 ```
 
@@ -25,7 +25,56 @@ sentiment <- as.numeric(sentiment)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment<0, -1)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment>0, 1)
 predicted_sentiment <- as.numeric(predicted_sentiment)
+
+data$Stance <- stance
+data$Sentiment <- sentiment
+data$sentimentVader <- predicted_sentiment
 ```
+
+TESTING VISUALIZATION
+```{r}
+library(gplots)
+sentimentHeatmapData <- data.frame(data$Sentiment, data$sentimentVader)
+sentimentHeatmapData <- table(sentimentHeatmapData)
+sentimentHeatmapData
+
+# save heatmap as image
+png("Data Analysis/images/VaderGroundTruthHeatmap.png",
+  width = 1500,
+  height = 1500,
+  res = 300,
+  pointsize = 8)
+
+#Note that I'm using a dark theme, so the colors might be inverted
+library(pals)
+
+lmat = rbind(c(0,3),c(2,1),c(0,4))
+lwid = c(0.5,4)
+lhei = c(1.5,4, 1.5)
+rownames(sentimentHeatmapData) <- c("negative", "neutral", "positive")
+colnames(sentimentHeatmapData) <- c("negative", "neutral", "positive")
+heatmap.2(sentimentHeatmapData,
+          cellnote=sentimentHeatmapData,
+          main="Vader and ground-truth sentiment",
+          density.info = "none",
+          trace="none",
+          notecol="white",
+          dendrogram='none',
+          Colv = FALSE,
+          Rowv = FALSE,
+          col=ocean.curl,
+          margins=c(12,12),
+          lmat=lmat,
+          lwid=lwid,
+          lhei=lhei,
+          cexRow=1,
+          cexCol=1,
+          xlab="Vader",
+          ylab="True value")
+
+dev.off()
+```
+
 
 EXPERIMENTS
 
@@ -44,3 +93,5 @@ cat(sum(stance == sentiment) / length(stance), "% overlap", sep='')
 Experiment 4) How much overlap is there between sentiment and stance?
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
+
+
