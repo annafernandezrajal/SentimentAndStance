@@ -1,3 +1,4 @@
+import nltk
 from nltk.tokenize import regexp_tokenize
 nltk.download('stopwords')  
 from nltk.corpus import stopwords  
