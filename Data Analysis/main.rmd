@@ -126,10 +126,30 @@ truth_predicted <- data.frame(
 truth_predicted$obs <- as.factor(truth_predicted$obs)
 truth_predicted$pred <- as.factor(truth_predicted$pred)
 
+
+# TODO try https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe
+# library(caret)
+# set.seed(23)
+# pred <- factor(sample(1:7,100,replace=T))
+# ref<- factor(sample(1:7,100,replace=T))
+# cm <- caret::confusionMatrix(pred,ref)
+# g <- plot.cm(cm)
+# g
+# cm_d <- as.data.frame(cm$table)
+# cm_d$diag <- cm_d$Prediction == cm_d$Reference # Get the Diagonal
+# cm_d$ndiag <- cm_d$Prediction != cm_d$Reference # Not the Diagonal
+# cm_d[cm_d == 0] <- NA # Replace 0 with NA for white tiles
+# cm_d$Reference <-  reverse.levels(cm_d$Reference) # diagonal starts at top left
+# cm_d$ref_freq <- cm_d$Freq * ifelse(is.na(cm_d$diag),-1,1)
+
 # The confusion matrix from a single assessment set (i.e. fold)
 cm <- conf_mat(truth_predicted, obs, pred)
 
 autoplot(cm, type = "heatmap") +
-        scale_fill_gradient(low="#D6EAF8",high = "#2E86C1") + theme(legend.position = "right")
+    scale_fill_gradient(low="#D6EAF8",high = "#2E86C1") +
+    theme(legend.position = "right") + 
+    scale_x_discrete(position = "top")
+
+
 
 ```
