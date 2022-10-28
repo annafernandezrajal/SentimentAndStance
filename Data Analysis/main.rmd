@@ -2,7 +2,10 @@
 
 load data
 ```{r}
-data <- read.csv("Data Analysis/dataset/output.csv")
+# data <- read.csv("Data Analysis/dataset/output.csv")
+
+data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
+
 data
 ```
 
@@ -39,11 +42,17 @@ sentimentHeatmapData <- table(sentimentHeatmapData)
 sentimentHeatmapData
 
 # save heatmap as image
-png("Data Analysis/images/VaderGroundTruthHeatmap.png",
-  width = 1500,
-  height = 1500,
-  res = 300,
-  pointsize = 8)
+# png("Data Analysis/images/VaderGroundTruthHeatmap.png",
+#   width = 1500,
+#   height = 1500,
+#   res = 300,
+#   pointsize = 8)
+png("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/VaderGroundTruthHeatmap.png",
+    width = 1500,
+    height = 1500,
+    res = 300,
+    pointsize = 8)
+
 
 #Note that I'm using a dark theme, so the colors might be inverted
 library(pals)
@@ -54,6 +63,7 @@ lhei = c(1.5,4, 1.5)
 rownames(sentimentHeatmapData) <- c("negative", "neutral", "positive")
 colnames(sentimentHeatmapData) <- c("negative", "neutral", "positive")
 heatmap.2(sentimentHeatmapData,
+          scale = "none",
           cellnote=sentimentHeatmapData,
           main="Vader and ground-truth sentiment",
           density.info = "none",
@@ -95,3 +105,31 @@ Experiment 4) How much overlap is there between sentiment and stance?
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
 
 
+
+
+
+```{r}
+library(yardstick)
+library(ggplot2)
+
+set.seed(123)
+truth_predicted <- data.frame(
+  obs <- data$Sentiment,
+  pred <- data$sentimentVader
+)
+
+# truth_predicted <- data.frame(
+#   obs = sample(-1:1,100, replace = T),
+#   pred = sample(-1:1,100, replace = T)
+# )
+
+truth_predicted$obs <- as.factor(truth_predicted$obs)
+truth_predicted$pred <- as.factor(truth_predicted$pred)
+
+# The confusion matrix from a single assessment set (i.e. fold)
+cm <- conf_mat(truth_predicted, obs, pred)
+
+autoplot(cm, type = "heatmap") +
+        scale_fill_gradient(low="#D6EAF8",high = "#2E86C1") + theme(legend.position = "right")
+
+```
