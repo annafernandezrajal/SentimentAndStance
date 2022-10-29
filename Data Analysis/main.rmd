@@ -112,44 +112,78 @@ Experiment 5) How do values for sentiment map to values for stance (with bucket 
 library(yardstick)
 library(ggplot2)
 
-set.seed(123)
 truth_predicted <- data.frame(
-  obs <- data$Sentiment,
-  pred <- data$sentimentVader
+  obs = data$Sentiment,
+  pred = data$sentimentVader
 )
 
-# truth_predicted <- data.frame(
-#   obs = sample(-1:1,100, replace = T),
-#   pred = sample(-1:1,100, replace = T)
-# )
-
-truth_predicted$obs <- as.factor(truth_predicted$obs)
-truth_predicted$pred <- as.factor(truth_predicted$pred)
-
-
+#
+#
 # TODO try https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe
-# library(caret)
-# set.seed(23)
-# pred <- factor(sample(1:7,100,replace=T))
-# ref<- factor(sample(1:7,100,replace=T))
-# cm <- caret::confusionMatrix(pred,ref)
-# g <- plot.cm(cm)
-# g
+
 # cm_d <- as.data.frame(cm$table)
 # cm_d$diag <- cm_d$Prediction == cm_d$Reference # Get the Diagonal
+truth_predicted$diag <- truth_predicted$obs == truth_predicted$pred
 # cm_d$ndiag <- cm_d$Prediction != cm_d$Reference # Not the Diagonal
 # cm_d[cm_d == 0] <- NA # Replace 0 with NA for white tiles
 # cm_d$Reference <-  reverse.levels(cm_d$Reference) # diagonal starts at top left
 # cm_d$ref_freq <- cm_d$Freq * ifelse(is.na(cm_d$diag),-1,1)
+truth_predicted$ref_freq <- truth_predicted$obs * ifelse(is.na(truth_predicted$diag),-1,1)
+print(truth_predicted)
 
-# The confusion matrix from a single assessment set (i.e. fold)
+# # The confusion matrix from a single assessment set (i.e. fold)
+truth_predicted$obs <- as.factor(truth_predicted$obs)
+truth_predicted$pred <- as.factor(truth_predicted$pred)
 cm <- conf_mat(truth_predicted, obs, pred)
 
 autoplot(cm, type = "heatmap") +
     scale_fill_gradient(low="#D6EAF8",high = "#2E86C1") +
-    theme(legend.position = "right") + 
+    theme(legend.position = "right") +
     scale_x_discrete(position = "top")
 
+```
+```{r}
+library(ggplot2)     # to plot
+library(gridExtra)   # to put more
+library(grid)        # plot together
+library(likert)      # for reversing the factor order
+#> Loading required package: xtable
+library(ggnewscale)
 
+plot.plotWithDiagonalMarked <- function(confusionMatrix){
+  # extract the confusion matrix values as data.frame
+  confusionMatrix_diagonalMarked <- as.data.frame(confusionMatrix$table)
+  confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the Diagonal
+  confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked == 0] <- NA # Replace 0 with NA for white tiles
+  confusionMatrix_diagonalMarked$Reference <-  reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
 
+  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(is.na(confusionMatrix_diagonalMarked$diag),-1,1)
+
+  # plotting the matrix
+  confusionMatrix_diagonalMarked_plot <-  ggplot(data = confusionMatrix_diagonalMarked, aes(x = Prediction , y =  Reference, fill = Freq))+
+    scale_x_discrete(position = "top") +
+    geom_tile( data = confusionMatrix_diagonalMarked,aes(fill = ref_freq)) +
+    scale_fill_gradientn(guide = FALSE, colours=c("red", "white", "#D6EAF8", "#2E86C1"), values=scales::rescale(c(-1, 0, 0.001, 1)), na.value="white") +
+    geom_text(aes(label = Freq), color = 'black', size = 6)+
+    theme_light() +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          legend.position = "none",
+          panel.border = element_blank(),
+          plot.background = element_blank(),
+          axis.line = element_blank())
+
+  return(confusionMatrix_diagonalMarked_plot)
+}
+
+library(caret)
+
+# simulated data
+set.seed(23)
+pred <- factor(sample(1:7,100,replace=T))
+ref<- factor(sample(1:7,100,replace=T))
+confusionMatrix <- caret::confusionMatrix(pred,ref)
+
+plot <- plot.plotWithDiagonalMarked(confusionMatrix)
+plot
+ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/test2.png")
 ```
