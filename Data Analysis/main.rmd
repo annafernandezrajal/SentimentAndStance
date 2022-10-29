@@ -28,18 +28,18 @@ stance <- data$Stance
 sentiment <- data$Sentiment
 predicted_sentiment <- data$sentimentVader
 
-stance <- replace(stance, stance=="FAVOR", 1)
-stance <- replace(stance, stance=="NONE", 0)
-stance <- replace(stance, stance=="AGAINST", -1)
+stance <- replace(stance, stance == "FAVOR", 1)
+stance <- replace(stance, stance == "NONE", 0)
+stance <- replace(stance, stance == "AGAINST", -1)
 stance <- as.numeric(stance)
 
-sentiment <- replace(sentiment, sentiment=="neg", -1)
-sentiment <- replace(sentiment, sentiment=="other", 0)
-sentiment <- replace(sentiment, sentiment=="pos", 1)
+sentiment <- replace(sentiment, sentiment == "neg", -1)
+sentiment <- replace(sentiment, sentiment == "other", 0)
+sentiment <- replace(sentiment, sentiment == "pos", 1)
 sentiment <- as.numeric(sentiment)
 
-predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment<0, -1)
-predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment>0, 1)
+predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment < 0, -1)
+predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment > 0, 1)
 predicted_sentiment <- as.numeric(predicted_sentiment)
 
 data$Stance <- stance
@@ -49,28 +49,30 @@ data$sentimentVader <- predicted_sentiment
 
 Visualization
 ```{r}
-# Based on DanO's answer on https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe
-plot.plotWithDiagonalMarked <- function(confusionMatrix){
-  # extract the confusion matrix values as data.frame
+# Based on DanO's answer on https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe but with several fixes
+plot.plotWithDiagonalMarked <- function(confusionMatrix) {
   confusionMatrix_diagonalMarked <- as.data.frame(confusionMatrix$table)
-  confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the Diagonal
-  confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked == 0] <- NA # Replace 0 with NA for white tiles
-  confusionMatrix_diagonalMarked$Reference <-  reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
+  confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the diagonal
+  confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked$Freq == 0] <- NA # If an tile is empty, mark it is NA so we can give it another color
+  confusionMatrix_diagonalMarked$Reference <- reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
+  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, -1) # flip sign for non-diagonal values
+  # confusionMatrix_diagonalMarked$ref_freq <- scale(confusionMatrix_diagonalMarked$ref_freq) # normalize values
+  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$ref_freq + max(confusionMatrix_diagonalMarked$ref_freq) # This for some reason fixes the colour range not being scaled properly, found by experimentation
 
-  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(is.na(confusionMatrix_diagonalMarked$diag),-1,1)
+  print(confusionMatrix_diagonalMarked)
 
   # plotting the matrix
-  confusionMatrix_diagonalMarked_plot <-  ggplot(data = confusionMatrix_diagonalMarked, aes(x = Prediction , y =  Reference, fill = Freq))+
-          scale_x_discrete(position = "top") +
-          geom_tile( data = confusionMatrix_diagonalMarked,aes(fill = ref_freq)) +
-          scale_fill_gradientn(guide = FALSE, colours=c("red", "white", "#D6EAF8", "#2E86C1"), values=scales::rescale(c(-1, 0, 0.001, 1)), na.value="white") +
-          geom_text(aes(label = Freq), color = 'black', size = 6)+
-          theme_light() +
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                legend.position = "none",
-                panel.border = element_blank(),
-                plot.background = element_blank(),
-                axis.line = element_blank())
+  confusionMatrix_diagonalMarked_plot <- ggplot(data = confusionMatrix_diagonalMarked, aes(x = Prediction, y = Reference, fill = Freq)) +
+    scale_x_discrete(position = "top") +
+    geom_tile(data = confusionMatrix_diagonalMarked, aes(fill = ref_freq)) +
+    scale_fill_gradientn(guide = FALSE, colours=c("red", "white", "#D6EAF8", "#2E86C1"), values=scales::rescale(c(-1, 0, 0.001, 1)), na.value="white") +
+    geom_text(aes(label = Freq), color = 'black', size = 6) +
+    theme_light() +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          legend.position = "none",
+          panel.border = element_blank(),
+          plot.background = element_blank(),
+          axis.line = element_blank())
 
   return(confusionMatrix_diagonalMarked_plot)
 }
@@ -81,14 +83,14 @@ EXPERIMENTS
 
 Experiment 1) How does sentiment analysis perform compared to the ground-truth?
 ```{r}
-cat(sum(sentiment == predicted_sentiment) / length(sentiment), "% accuracy", sep='')
+cat(sum(sentiment == predicted_sentiment) / length(sentiment), "% accuracy", sep = '')
 ```
 
 Experiment 2) How does stance detection perform compared to the ground-truth?
 
 Experiment 3) How much overlap is there between ground-truth sentiment and stance?
 ```{r}
-cat(sum(stance == sentiment) / length(stance), "% overlap", sep='')
+cat(sum(stance == sentiment) / length(stance), "% overlap", sep = '')
 ```
 
 Experiment 4) How much overlap is there between sentiment and stance?
@@ -105,6 +107,13 @@ truth_predicted <- data.frame(
   Reference = data$Sentiment
 )
 
+truth_predicted$Reference[truth_predicted$Reference == 0] <- "Neutral"
+truth_predicted$Prediction[truth_predicted$Prediction == 0] <- "Neutral"
+truth_predicted$Reference[truth_predicted$Reference == 1] <- "Positive"
+truth_predicted$Prediction[truth_predicted$Prediction == 1] <- "Positive"
+truth_predicted$Reference[truth_predicted$Reference == -1] <- "Negative"
+truth_predicted$Prediction[truth_predicted$Prediction == -1] <- "Negative"
+
 truth_predicted$Reference <- as.factor(truth_predicted$Reference)
 truth_predicted$Prediction <- as.factor(truth_predicted$Prediction)
 
@@ -112,7 +121,7 @@ confusionMatrix <- caret::confusionMatrix(truth_predicted$Prediction, truth_pred
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix)
 plot
-# ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/test2.png")
+ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/VaderGroundTruthHeatmap.png")
 
 ```
 
