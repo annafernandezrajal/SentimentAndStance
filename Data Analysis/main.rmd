@@ -69,6 +69,7 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel) {
           geom_tile(data = confusionMatrix_diagonalMarked, aes(fill = ref_freq)) +
           scale_fill_gradientn(guide = FALSE, colours=c("red", "white", "#D6EAF8", "#2E86C1"), values=scales::rescale(c(-1, 0, 0.001, 1)), na.value="white") +
           geom_text(aes(label = Freq), color = 'black', size = 6) +
+          coord_equal() +
           theme_light() +
           theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                 legend.position = "none",
@@ -103,7 +104,7 @@ vader_ground$Prediction <- as.factor(vader_ground$Prediction)
 
 confusionMatrix <- caret::confusionMatrix(vader_ground$Prediction, vader_ground$Reference)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'Prediction', 'Reference')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'Actual sentiment')
 plot
 ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/VaderGroundTruthHeatmap.png")
 ```
@@ -131,7 +132,7 @@ ground_sentiment_stance$Stance <- as.factor(ground_sentiment_stance$Stance)
 
 confusionMatrix <- caret::confusionMatrix(ground_sentiment_stance$Stance, ground_sentiment_stance$Sentiment)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'Sentiment', 'Stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'Actual sentiment', 'Actual stance')
 plot
 ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/GroundTruthSentimentStance.png")
 ```
