@@ -57,7 +57,7 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix) {
   confusionMatrix_diagonalMarked$Reference <- reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
   confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, -1) # flip sign for non-diagonal values
   # confusionMatrix_diagonalMarked$ref_freq <- scale(confusionMatrix_diagonalMarked$ref_freq) # normalize values
-  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$ref_freq + max(confusionMatrix_diagonalMarked$ref_freq) - min(confusionMatrix_diagonalMarked$ref_freq) # This for some reason fixes the colour range not being scaled properly, found by experimentation
+  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$ref_freq + max(confusionMatrix_diagonalMarked$Freq) + min(confusionMatrix_diagonalMarked$Freq)  # This for some reason fixes the colour range not being scaled properly, found by experimentation
 
   print(confusionMatrix_diagonalMarked)
 
