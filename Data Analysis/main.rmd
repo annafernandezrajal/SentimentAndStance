@@ -15,9 +15,9 @@ library(yardstick)
 
 Load data
 ```{r}
-# data <- read.csv("Data Analysis/dataset/output.csv")
+data <- read.csv("Data Analysis/dataset/output_test.csv")
 
-data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
+##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
 
 data
 ```
@@ -27,6 +27,7 @@ Pre-process
 stance <- data$Stance
 sentiment <- data$Sentiment
 predicted_sentiment <- data$sentimentVader
+predicted_stance <- data$StanceSVM
 
 stance <- replace(stance, stance == "FAVOR", 1)
 stance <- replace(stance, stance == "NONE", 0)
@@ -42,9 +43,15 @@ predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment < 0, -1)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment > 0, 1)
 predicted_sentiment <- as.numeric(predicted_sentiment)
 
+predicted_stance <- replace(predicted_stance, predicted_stance == "FAVOR", 1)
+predicted_stance <- replace(predicted_stance, predicted_stance == "NONE", 0)
+predicted_stance <- replace(predicted_stance, predicted_stance == "AGAINST", -1)
+predicted_stance <- as.numeric(predicted_stance)
+
 data$Stance <- stance
 data$Sentiment <- sentiment
 data$sentimentVader <- predicted_sentiment
+data$StanceSVM <- predicted_stance
 ```
 
 Visualization
@@ -106,10 +113,34 @@ confusionMatrix <- caret::confusionMatrix(vader_ground$Prediction, vader_ground$
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'Actual sentiment')
 plot
-ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/VaderGroundTruthHeatmap.png")
+ggsave("Data Analysis/images/VaderGroundTruthHeatmap.png")
 ```
 
 Experiment 2) How does stance detection perform compared to the ground-truth?
+```{r}
+cat(sum(stance == predicted_stance) / length(stance),  "% accuracy", sep = '')
+
+stance_ground <- data.frame(
+  Prediction = data$StanceSVM,
+  Reference = data$Stance
+)
+
+stance_ground$Reference[stance_ground$Reference == 1] <- "FAVOR"
+stance_ground$Prediction[stance_ground$Prediction == 1] <- "FAVOR"
+stance_ground$Reference[stance_ground$Reference == 0] <- "NONE"
+stance_ground$Prediction[stance_ground$Prediction == 0] <- "NONE"
+stance_ground$Reference[stance_ground$Reference == -1] <- "AGAINST"
+stance_ground$Prediction[stance_ground$Prediction == -1] <- "AGAINST"
+
+stance_ground$Reference <- as.factor(stance_ground$Reference)
+stance_ground$Prediction <- as.factor(stance_ground$Prediction)
+
+confusionMatrix <- caret::confusionMatrix(stance_ground$Prediction, stance_ground$Reference)
+
+plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'SVM stance', 'Actual stance')
+plot
+ggsave("Data Analysis/images/StanceSVMGroundTruthHeatmap.png")
+```
 
 Experiment 3) How much overlap is there between ground-truth sentiment and stance?
 ```{r}
@@ -134,7 +165,7 @@ confusionMatrix <- caret::confusionMatrix(ground_sentiment_stance$Stance, ground
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'Actual sentiment', 'Actual stance')
 plot
-ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/GroundTruthSentimentStance.png")
+ggsave("Data Analysis/images/GroundTruthSentimentStance.png")
 ```
 
 Experiment 4) How much overlap is there between sentiment and stance?
