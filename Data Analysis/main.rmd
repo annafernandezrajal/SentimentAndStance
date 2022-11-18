@@ -15,7 +15,8 @@ library(yardstick)
 
 Load data
 ```{r}
-data <- read.csv("Data Analysis/dataset/output_test.csv")
+data <- read.csv("Data Analysis/dataset/output_test_classification.csv")
+data_reg <- read.csv("Data Analysis/dataset/output_test_regression.csv")
 
 ##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
 
@@ -26,7 +27,7 @@ Pre-process
 ```{r}
 stance <- data$Stance
 sentiment <- data$Sentiment
-predicted_sentiment <- data$sentimentVader
+predicted_sentiment <- data_reg$sentimentVader
 predicted_stance <- data$StanceSVM
 
 stance <- replace(stance, stance == "FAVOR", 1)
@@ -42,6 +43,10 @@ sentiment <- as.numeric(sentiment)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment < 0, -1)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment > 0, 1)
 predicted_sentiment <- as.numeric(predicted_sentiment)
+# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "neg", -1)
+# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "other", 0)
+# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "pos", 1)
+# predicted_sentiment <- as.numeric(predicted_sentiment)
 
 predicted_stance <- replace(predicted_stance, predicted_stance == "FAVOR", 1)
 predicted_stance <- replace(predicted_stance, predicted_stance == "NONE", 0)
@@ -109,9 +114,9 @@ vader_ground$Prediction[vader_ground$Prediction == -1] <- "Negative"
 vader_ground$Reference <- as.factor(vader_ground$Reference)
 vader_ground$Prediction <- as.factor(vader_ground$Prediction)
 
-confusionMatrix <- caret::confusionMatrix(vader_ground$Prediction, vader_ground$Reference)
+confusionMatrix1 <- caret::confusionMatrix(vader_ground$Prediction, vader_ground$Reference)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'Actual sentiment')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix1, 'VADER sentiment', 'Actual sentiment')
 plot
 ggsave("Data Analysis/images/VaderGroundTruthHeatmap.png")
 ```
@@ -135,9 +140,9 @@ stance_ground$Prediction[stance_ground$Prediction == -1] <- "AGAINST"
 stance_ground$Reference <- as.factor(stance_ground$Reference)
 stance_ground$Prediction <- as.factor(stance_ground$Prediction)
 
-confusionMatrix <- caret::confusionMatrix(stance_ground$Prediction, stance_ground$Reference)
+confusionMatrix2 <- caret::confusionMatrix(stance_ground$Prediction, stance_ground$Reference)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'SVM stance', 'Actual stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance')
 plot
 ggsave("Data Analysis/images/StanceSVMGroundTruthHeatmap.png")
 ```
@@ -147,28 +152,53 @@ Experiment 3) How much overlap is there between ground-truth sentiment and stanc
 cat(sum(stance == sentiment) / length(stance), "% overlap", sep = '')
 
 ground_sentiment_stance <- data.frame(
-  Sentiment = data$Sentiment,
-  Stance = data$Stance
+  Prediction = data$Sentiment,
+  Reference = data$Stance
 )
 
-ground_sentiment_stance$Sentiment[ground_sentiment_stance$Sentiment == 0] <- "Neutral"
-ground_sentiment_stance$Stance[ground_sentiment_stance$Stance == 0] <- "Neutral"
-ground_sentiment_stance$Sentiment[ground_sentiment_stance$Sentiment == 1] <- "Positive"
-ground_sentiment_stance$Stance[ground_sentiment_stance$Stance == 1] <- "Positive"
-ground_sentiment_stance$Sentiment[ground_sentiment_stance$Sentiment == -1] <- "Negative"
-ground_sentiment_stance$Stance[ground_sentiment_stance$Stance == -1] <- "Negative"
+ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == 0] <- "Neutral"
+ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == 0] <- "Neutral"
+ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == 1] <- "Positive"
+ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == 1] <- "Positive"
+ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == -1] <- "Negative"
+ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == -1] <- "Negative"
 
-ground_sentiment_stance$Sentiment <- as.factor(ground_sentiment_stance$Sentiment)
-ground_sentiment_stance$Stance <- as.factor(ground_sentiment_stance$Stance)
+ground_sentiment_stance$Prediction <- as.factor(ground_sentiment_stance$Prediction)
+ground_sentiment_stance$Reference <- as.factor(ground_sentiment_stance$Reference)
 
-confusionMatrix <- caret::confusionMatrix(ground_sentiment_stance$Stance, ground_sentiment_stance$Sentiment)
+confusionMatrix3 <- caret::confusionMatrix(ground_sentiment_stance$Reference, ground_sentiment_stance$Prediction)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'Actual sentiment', 'Actual stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance')
 plot
 ggsave("Data Analysis/images/GroundTruthSentimentStance.png")
 ```
 
 Experiment 4) How much overlap is there between sentiment and stance?
+
+```{r}
+cat(sum(predicted_stance == predicted_sentiment) / length(predicted_stance),  "% accuracy", sep = '')
+
+pred_sent_stance <- data.frame(
+  Prediction = data$StanceSVM,
+  Reference = data$sentimentVader
+)
+
+pred_sent_stance$Reference[pred_sent_stance$Reference == 1] <- "FAVOR"
+pred_sent_stance$Prediction[pred_sent_stance$Prediction == 1] <- "FAVOR"
+pred_sent_stance$Reference[pred_sent_stance$Reference == 0] <- "NONE"
+pred_sent_stance$Prediction[pred_sent_stance$Prediction == 0] <- "NONE"
+pred_sent_stance$Reference[pred_sent_stance$Reference == -1] <- "AGAINST"
+pred_sent_stance$Prediction[pred_sent_stance$Prediction == -1] <- "AGAINST"
+
+pred_sent_stance$Reference <- as.factor(pred_sent_stance$Reference)
+pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
+
+confusionMatrix4 <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
+
+plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance')
+plot
+ggsave("Data Analysis/images/PredictionSentimentStance.png")
+````
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
 
