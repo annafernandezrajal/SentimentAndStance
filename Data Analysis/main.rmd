@@ -15,8 +15,8 @@ library(yardstick)
 
 Load data
 ```{r}
-data <- read.csv("Data Analysis/dataset/output_test_classification.csv")
-data_reg <- read.csv("Data Analysis/dataset/output_test_regression.csv")
+data <- read.csv("dataset/output_test_classification.csv")
+data_reg <- read.csv("dataset/output_test_regression.csv")
 
 ##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
 
@@ -87,7 +87,10 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel) {
                 legend.position = "none",
                 panel.border = element_blank(),
                 plot.background = element_blank(),
-                axis.line = element_blank())
+                axis.line = element_blank(),
+                axis.text = element_text(size=20),
+                axis.title= element_text(size=30, face="bold")
+                )
   return(confusionMatrix_diagonalMarked_plot)
 }
 ```
@@ -118,7 +121,7 @@ confusionMatrix1 <- caret::confusionMatrix(vader_ground$Prediction, vader_ground
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix1, 'VADER sentiment', 'Actual sentiment')
 plot
-ggsave("Data Analysis/images/VaderGroundTruthHeatmap.png")
+ggsave("images/VaderGroundTruthHeatmap.png")
 ```
 
 Experiment 2) How does stance detection perform compared to the ground-truth?
@@ -144,7 +147,7 @@ confusionMatrix2 <- caret::confusionMatrix(stance_ground$Prediction, stance_grou
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance')
 plot
-ggsave("Data Analysis/images/StanceSVMGroundTruthHeatmap.png")
+ggsave("images/StanceSVMGroundTruthHeatmap.png")
 ```
 
 Experiment 3) How much overlap is there between ground-truth sentiment and stance?
@@ -170,7 +173,7 @@ confusionMatrix3 <- caret::confusionMatrix(ground_sentiment_stance$Reference, gr
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance')
 plot
-ggsave("Data Analysis/images/GroundTruthSentimentStance.png")
+ggsave("images/GroundTruthSentimentStance.png")
 ```
 
 Experiment 4) How much overlap is there between sentiment and stance?
@@ -197,7 +200,7 @@ confusionMatrix4 <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance')
 plot
-ggsave("Data Analysis/images/PredictionSentimentStance.png")
+ggsave("images/PredictionSentimentStance.png")
 ````
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
