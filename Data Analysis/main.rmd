@@ -93,8 +93,8 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
              aes(label = Freq),
              color = 'black',
              size = 6) +
-          scale_x_discrete(labels=xValueLabels, position = "top", limits=valueOrdering) +
-          scale_y_discrete(labels=yValueLabels, limits=rev(valueOrdering)) +
+          scale_x_discrete(labels=xValueLabels, limits=valueOrdering, expand=c(0,0), position = "top") +
+          scale_y_discrete(labels=yValueLabels, limits=rev(valueOrdering), expand=c(0,0)) +
           coord_equal() +
           theme_light() +
           theme(
