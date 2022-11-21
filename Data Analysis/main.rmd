@@ -93,8 +93,8 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
              aes(label = Freq),
              color = 'black',
              size = 6) +
-          scale_x_discrete(labels=xValueLabels, position = "top") +
-          scale_y_discrete(labels=yValueLabels) +
+          scale_x_discrete(labels=xValueLabels, position = "top", limits=valueOrdering) +
+          scale_y_discrete(labels=yValueLabels, limits=rev(valueOrdering)) +
           coord_equal() +
           theme_light() +
           theme(
@@ -151,7 +151,7 @@ stance_ground$Prediction <- as.factor(stance_ground$Prediction)
 
 confusionMatrix2 <- caret::confusionMatrix(stance_ground$Prediction, stance_ground$Reference)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance', stanceValueLabels, stanceValueLabels)
+plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance', stanceValueLabels, stanceValueLabels, valueOrdering)
 plot
 ggsave("images/StanceSVMGroundTruthHeatmap.png")
 ```
@@ -170,7 +170,7 @@ ground_sentiment_stance$Reference <- as.factor(ground_sentiment_stance$Reference
 
 confusionMatrix3 <- caret::confusionMatrix(ground_sentiment_stance$Reference, ground_sentiment_stance$Prediction)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance', sentimentValueLabels, stanceValueLabels)
+plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance', sentimentValueLabels, stanceValueLabels, valueOrdering)
 plot
 ggsave("images/GroundTruthSentimentStance.png")
 ```
@@ -190,7 +190,7 @@ pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
 
 confusionMatrix4 <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance', sentimentValueLabels, stanceValueLabels)
+plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance', sentimentValueLabels, stanceValueLabels, valueOrdering)
 plot
 ggsave("images/PredictionSentimentStance.png")
 ```
