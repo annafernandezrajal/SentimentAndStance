@@ -62,7 +62,9 @@ data$StanceSVM <- predicted_stance
 Visualization
 ```{r}
 # Based on DanO's answer on https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe but with several fixes
-plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel) {
+plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueLabels, yValueLabels, valueOrdering) {
+  yValueLabels = rev(yValueLabels) #y labels go from bottom to top, instead of the expected top to bottom
+
   confusionMatrix_diagonalMarked <- as.data.frame(confusionMatrix$table)
   confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the diagonal
   confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked$Freq == 0] <- NA # If an tile is empty, mark it is NA so we can give it another color
@@ -74,27 +76,46 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel) {
   print(confusionMatrix_diagonalMarked)
 
   # plotting the matrix
-  confusionMatrix_diagonalMarked_plot <- ggplot(data = confusionMatrix_diagonalMarked, aes(x = Prediction, y = Reference, fill = Freq)) +
+  confusionMatrix_diagonalMarked_plot <- ggplot(
+            data = confusionMatrix_diagonalMarked,
+            aes(x = Prediction, y = Reference, fill = Freq)) +
           xlab(xlabel) +
           ylab(ylabel) +
-          scale_x_discrete(position = "top") +
-          geom_tile(data = confusionMatrix_diagonalMarked, aes(fill = ref_freq)) +
-          scale_fill_gradientn(guide = FALSE, colours=c("red", "white", "#D6EAF8", "#2E86C1"), values=scales::rescale(c(-1, 0, 0.001, 1)), na.value="white") +
-          geom_text(aes(label = Freq), color = 'black', size = 6) +
+          geom_tile(
+            data = confusionMatrix_diagonalMarked,
+            aes(fill = ref_freq)) +
+          scale_fill_gradientn(
+             guide = FALSE,
+             colours=c("red", "white", "#D6EAF8", "#2E86C1"),
+             values=scales::rescale(c(-1, 0, 0.001, 1)),
+             na.value="white") +
+          geom_text(
+             aes(label = Freq),
+             color = 'black',
+             size = 6) +
+          scale_x_discrete(labels=xValueLabels, position = "top") +
+          scale_y_discrete(labels=yValueLabels) +
           coord_equal() +
           theme_light() +
-          theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                legend.position = "none",
-                panel.border = element_blank(),
-                plot.background = element_blank(),
-                axis.line = element_blank(),
-                axis.text = element_text(size=20),
-                axis.title= element_text(size=30, face="bold")
-                )
+          theme(
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            legend.position = "none",
+            panel.border = element_blank(),
+            plot.background = element_blank(),
+            axis.line = element_blank(),
+            axis.text = element_text(size=20),
+            axis.title= element_text(size=30, face="bold")
+            )
   return(confusionMatrix_diagonalMarked_plot)
 }
 ```
 
+```{r}
+sentimentValueLabels = c("Negative", "Neutral", "Positive")
+stanceValueLabels = c("Against", "Neutral", "Agree")
+valueOrdering = c("-1", "0", "1")
+```
 
 EXPERIMENTS
 
@@ -107,19 +128,11 @@ vader_ground <- data.frame(
   Reference = data$Sentiment
 )
 
-vader_ground$Reference[vader_ground$Reference == 0] <- "Neutral"
-vader_ground$Prediction[vader_ground$Prediction == 0] <- "Neutral"
-vader_ground$Reference[vader_ground$Reference == 1] <- "Positive"
-vader_ground$Prediction[vader_ground$Prediction == 1] <- "Positive"
-vader_ground$Reference[vader_ground$Reference == -1] <- "Negative"
-vader_ground$Prediction[vader_ground$Prediction == -1] <- "Negative"
-
 vader_ground$Reference <- as.factor(vader_ground$Reference)
 vader_ground$Prediction <- as.factor(vader_ground$Prediction)
 
 confusionMatrix1 <- caret::confusionMatrix(vader_ground$Prediction, vader_ground$Reference)
-
-plot <- plot.plotWithDiagonalMarked(confusionMatrix1, 'VADER sentiment', 'Actual sentiment')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix1, 'VADER sentiment', 'Actual sentiment', sentimentValueLabels, sentimentValueLabels, valueOrdering)
 plot
 ggsave("images/VaderGroundTruthHeatmap.png")
 ```
@@ -133,19 +146,12 @@ stance_ground <- data.frame(
   Reference = data$Stance
 )
 
-stance_ground$Reference[stance_ground$Reference == 1] <- "FAVOR"
-stance_ground$Prediction[stance_ground$Prediction == 1] <- "FAVOR"
-stance_ground$Reference[stance_ground$Reference == 0] <- "NONE"
-stance_ground$Prediction[stance_ground$Prediction == 0] <- "NONE"
-stance_ground$Reference[stance_ground$Reference == -1] <- "AGAINST"
-stance_ground$Prediction[stance_ground$Prediction == -1] <- "AGAINST"
-
 stance_ground$Reference <- as.factor(stance_ground$Reference)
 stance_ground$Prediction <- as.factor(stance_ground$Prediction)
 
 confusionMatrix2 <- caret::confusionMatrix(stance_ground$Prediction, stance_ground$Reference)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix2, 'SVM stance', 'Actual stance', stanceValueLabels, stanceValueLabels)
 plot
 ggsave("images/StanceSVMGroundTruthHeatmap.png")
 ```
@@ -159,19 +165,12 @@ ground_sentiment_stance <- data.frame(
   Reference = data$Stance
 )
 
-ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == 0] <- "Neutral"
-ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == 0] <- "Neutral"
-ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == 1] <- "Positive"
-ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == 1] <- "Positive"
-ground_sentiment_stance$Prediction[ground_sentiment_stance$Prediction == -1] <- "Negative"
-ground_sentiment_stance$Reference[ground_sentiment_stance$Reference == -1] <- "Negative"
-
 ground_sentiment_stance$Prediction <- as.factor(ground_sentiment_stance$Prediction)
 ground_sentiment_stance$Reference <- as.factor(ground_sentiment_stance$Reference)
 
 confusionMatrix3 <- caret::confusionMatrix(ground_sentiment_stance$Reference, ground_sentiment_stance$Prediction)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix3, 'Actual sentiment', 'Actual stance', sentimentValueLabels, stanceValueLabels)
 plot
 ggsave("images/GroundTruthSentimentStance.png")
 ```
@@ -186,22 +185,15 @@ pred_sent_stance <- data.frame(
   Reference = data$sentimentVader
 )
 
-pred_sent_stance$Reference[pred_sent_stance$Reference == 1] <- "FAVOR"
-pred_sent_stance$Prediction[pred_sent_stance$Prediction == 1] <- "FAVOR"
-pred_sent_stance$Reference[pred_sent_stance$Reference == 0] <- "NONE"
-pred_sent_stance$Prediction[pred_sent_stance$Prediction == 0] <- "NONE"
-pred_sent_stance$Reference[pred_sent_stance$Reference == -1] <- "AGAINST"
-pred_sent_stance$Prediction[pred_sent_stance$Prediction == -1] <- "AGAINST"
-
 pred_sent_stance$Reference <- as.factor(pred_sent_stance$Reference)
 pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
 
 confusionMatrix4 <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
 
-plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance')
+plot <- plot.plotWithDiagonalMarked(confusionMatrix4, 'VADER sentiment', 'SVM Stance', sentimentValueLabels, stanceValueLabels)
 plot
 ggsave("images/PredictionSentimentStance.png")
-````
+```
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
 
