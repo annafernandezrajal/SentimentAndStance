@@ -15,8 +15,8 @@ library(yardstick)
 
 Load data
 ```{r}
-data <- read.csv("dataset/output_test_classification.csv")
-data_reg <- read.csv("dataset/output_test_regression.csv")
+data <- read.csv("Data Analysis/dataset/output_test_classification.csv")
+data_reg <- read.csv("Data Analysis/dataset/output_test_regression.csv")
 
 ##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
 

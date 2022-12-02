@@ -24,27 +24,10 @@ data
 
 Pre-process
 ```{r}
-stance <- data$Stance
-sentiment <- data$Sentiment
 predicted_sentiment <- data$sentimentVader
 predicted_stance <- data$StanceSVM
 
-stance <- replace(stance, stance == "FAVOR", 1)
-stance <- replace(stance, stance == "NONE", 0)
-stance <- replace(stance, stance == "AGAINST", -1)
-stance <- as.numeric(stance)
 
-sentiment <- replace(sentiment, sentiment == "neg", -1)
-sentiment <- replace(sentiment, sentiment == "other", 0)
-sentiment <- replace(sentiment, sentiment == "pos", 1)
-sentiment <- as.numeric(sentiment)
-
-# predicted_sentiment <- as.numeric(predicted_sentiment)
-
-# predicted_stance <- as.numeric(predicted_stance)
-
-data$Stance <- stance
-data$Sentiment <- sentiment
 data$sentimentVader <- predicted_sentiment
 data$StanceSVM <- predicted_stance
 ```
@@ -59,7 +42,7 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
   confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the diagonal
   confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked$Freq == 0] <- NA # If an tile is empty, mark it is NA so we can give it another color
   confusionMatrix_diagonalMarked$Reference <- reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
-  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, 4) # flip sign for non-diagonal values
+  # confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, 4) # flip sign for non-diagonal values
   # confusionMatrix_diagonalMarked$ref_freq <- scale(confusionMatrix_diagonalMarked$ref_freq) # normalize values
   confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$ref_freq + max(confusionMatrix_diagonalMarked$Freq) + min(confusionMatrix_diagonalMarked$Freq)  # This for some reason fixes the colour range not being scaled properly, found by experimentation
 
@@ -102,9 +85,9 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
 ```
 
 ```{r}
-sentimentValueLabels = c("Super Neg", "Negative", "Positive", "Super Pos")
-stanceValueLabels = c("Super Against", "Againts", "Agree", "Super Agree")
-valueOrdering = c("1", "2", "3", "4")
+sentimentValueLabels = c("Super Neg", "Negative", "Neutral", "Positive", "Super Pos")
+stanceValueLabels = c("Super Against", "Againts", "Neutral", "Agree", "Super Agree")
+valueOrdering = c("0", "1", "3", "4", "5")
 ```
 
 EXPERIMENTS
@@ -119,9 +102,6 @@ pred_sent_stance <- data.frame(
   Prediction = data$StanceSVM,
   Reference = data$sentimentVader
 )
-
-pred_sent_stance$Reference <- as.factor(pred_sent_stance$Reference)
-pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
 
 confusionMatrix <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
 
