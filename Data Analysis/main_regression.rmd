@@ -82,8 +82,8 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
 ```
 
 ```{r}
-sentimentValueLabels = c("Super Neg", "Negative", "Neutral", "Positive", "Super Pos")
-stanceValueLabels = c("Super Against", "Againts", "Neutral", "Agree", "Super Agree")
+sentimentValueLabels = c("Very Neg", "Negative", "Neutral", "Positive", "Very Pos")
+stanceValueLabels = c("Strongly Against", "Againts", "Neutral", "Agree", "Strongly Agree")
 valueOrdering = c("0", "1", "3", "4", "5")
 ```
 
