@@ -15,7 +15,7 @@ library(yardstick)
 
 Load data
 ```{r}
-data <- read.csv("Data Analysis/dataset/output_test_regression_classes.csv")
+data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output_test_regression_classes.csv")
 
 ##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
 
@@ -34,20 +34,17 @@ data$StanceSVM <- predicted_stance
 
 Visualization
 ```{r}
-# Based on DanO's answer on https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe but with several fixes
+# Based on DanO's answer on https://stackoverflow.com/questions/61504970/ggplot2-heatmap-2-different-color-schemes-confusion-matrix-matches-in-differe but with several fixes and improvements
 plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueLabels, yValueLabels, valueOrdering) {
   yValueLabels = rev(yValueLabels) #y labels go from bottom to top, instead of the expected top to bottom
-
   confusionMatrix_diagonalMarked <- as.data.frame(confusionMatrix$table)
   confusionMatrix_diagonalMarked$diag <- confusionMatrix_diagonalMarked$Prediction == confusionMatrix_diagonalMarked$Reference # Get the diagonal
-  confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked$Freq == 0] <- NA # If an tile is empty, mark it is NA so we can give it another color
+  # confusionMatrix_diagonalMarked[confusionMatrix_diagonalMarked$Freq == 0, ] <- NA # If an tile is empty, mark it is NA so we can give it another color (comma is there to prevent a weird crash https://stackoverflow.com/questions/51027983/r-error-from-nas-to-0-duplicate-subscripts-for-column-in-data-frame)
   confusionMatrix_diagonalMarked$Reference <- reverse.levels(confusionMatrix_diagonalMarked$Reference) # diagonal starts at top left
-  # confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, 4) # flip sign for non-diagonal values
+  confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$Freq * ifelse(confusionMatrix_diagonalMarked$diag, 1, -1) # flip sign for non-diagonal values
   # confusionMatrix_diagonalMarked$ref_freq <- scale(confusionMatrix_diagonalMarked$ref_freq) # normalize values
   confusionMatrix_diagonalMarked$ref_freq <- confusionMatrix_diagonalMarked$ref_freq + max(confusionMatrix_diagonalMarked$Freq) + min(confusionMatrix_diagonalMarked$Freq)  # This for some reason fixes the colour range not being scaled properly, found by experimentation
-
   print(confusionMatrix_diagonalMarked)
-
   # plotting the matrix
   confusionMatrix_diagonalMarked_plot <- ggplot(
             data = confusionMatrix_diagonalMarked,
@@ -103,11 +100,14 @@ pred_sent_stance <- data.frame(
   Reference = data$sentimentVader
 )
 
+pred_sent_stance$Reference <- as.factor(pred_sent_stance$Reference)
+pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
+
 confusionMatrix <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'SVM Stance', sentimentValueLabels, stanceValueLabels, valueOrdering)
 plot
-ggsave("images/PredictionSentimentStancereg.png")
+ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/PredictionSentimentStancereg.png")
 ```
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
