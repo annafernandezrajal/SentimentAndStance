@@ -107,7 +107,7 @@ confusionMatrix <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_
 
 plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'SVM Stance', sentimentValueLabels, stanceValueLabels, valueOrdering)
 plot
-ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/PredictionSentimentStancereg.png")
+ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/PredictionSentimentStance5x5.png")
 ```
 
 Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
