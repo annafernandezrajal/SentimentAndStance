@@ -93,7 +93,7 @@ EXPERIMENTS
 Experiment 4) How much overlap is there between sentiment and stance?
 
 ```{r}
-cat(sum(predicted_stance == predicted_sentiment) / length(predicted_stance),  "% accuracy", sep = '')
+cat(100*sum(predicted_stance == predicted_sentiment) / length(predicted_stance),  "% accuracy", sep = '')
 
 pred_sent_stance <- data.frame(
   Prediction = data$StanceSVM,

@@ -17,8 +17,7 @@ Load data
 ```{r}
 data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output_test_classification.csv")
 data_reg <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output_test_regression.csv")
-
-##data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output.csv")
+regression_data <- read.csv("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/dataset/output_test_regression_classes.csv")
 
 data
 ```
@@ -43,10 +42,6 @@ sentiment <- as.numeric(sentiment)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment < 0, -1)
 predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment > 0, 1)
 predicted_sentiment <- as.numeric(predicted_sentiment)
-# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "neg", -1)
-# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "other", 0)
-# predicted_sentiment <- replace(predicted_sentiment, predicted_sentiment == "pos", 1)
-# predicted_sentiment <- as.numeric(predicted_sentiment)
 
 predicted_stance <- replace(predicted_stance, predicted_stance == "FAVOR", 1)
 predicted_stance <- replace(predicted_stance, predicted_stance == "NONE", 0)
@@ -115,13 +110,17 @@ plot.plotWithDiagonalMarked <- function(confusionMatrix, xlabel, ylabel, xValueL
 sentimentValueLabels = c("Negative", "Neutral", "Positive")
 stanceValueLabels = c("Against", "Neutral", "Agree")
 valueOrdering = c("-1", "0", "1")
+
+sentimentValueLabels_regression = c("Very Neg", "Negative", "Neutral", "Positive", "Very Pos")
+stanceValueLabels_regression = c("Strongly Against", "Againts", "Neutral", "Agree", "Strongly Agree")
+valueOrdering_regression = c("0", "1", "3", "4", "5")
 ```
 
 EXPERIMENTS
 
 Experiment 1) How does sentiment analysis perform compared to the ground-truth?
 ```{r}
-cat(sum(sentiment == predicted_sentiment) / length(sentiment), "% accuracy", sep = '')
+cat(100*sum(sentiment == predicted_sentiment) / length(sentiment), "% accuracy", sep = '')
 
 vader_ground <- data.frame(
   Prediction = data$sentimentVader,
@@ -169,7 +168,7 @@ for(test_range_vader in neutral_range_values){
       neutral_range_vader = test_range_vader
     }
 
-    cat(sum(sentiment == predicted_sentiment_fitted) / length(sentiment), "% accuracy \n", sep = '')
+    # cat(sum(sentiment == predicted_sentiment_fitted) / length(sentiment), "% accuracy \n", sep = '')
   }
 }
 
@@ -182,7 +181,7 @@ predicted_sentiment_fitted <- replace(predicted_sentiment_fitted,
                                       0)
 predicted_sentiment_fitted <- as.numeric(predicted_sentiment_fitted)
 
-cat(sum(sentiment == predicted_sentiment_fitted) / length(sentiment), "% accuracy, bias ", bias_term_vader, " neutral range: ", neutral_range_vader, "\n", sep = '')
+cat(100*sum(sentiment == predicted_sentiment_fitted) / length(sentiment), "% accuracy, bias ", -bias_term_vader, " neutral range: ", neutral_range_vader, "\n", sep = '')
 
 
 vader_ground <- data.frame(
@@ -257,9 +256,25 @@ plot
 ggsave("images/PredictionSentimentStance.png")
 ```
 
-Experiment 5) How do values for sentiment map to values for stance (with bucket sizes of 0.2)?
+Experiment 5) How do values for sentiment map to values for stance (with using more buckets)?
 
+```{r}
+cat(100*sum(predicted_stance == predicted_sentiment) / length(predicted_stance),  "% accuracy", sep = '')
 
+pred_sent_stance <- data.frame(
+Prediction = regression_data$StanceSVM,
+Reference = regression_data$sentimentVader
+)
+
+pred_sent_stance$Reference <- as.factor(pred_sent_stance$Reference)
+pred_sent_stance$Prediction <- as.factor(pred_sent_stance$Prediction)
+
+confusionMatrix <- caret::confusionMatrix(pred_sent_stance$Reference, pred_sent_stance$Prediction)
+
+plot <- plot.plotWithDiagonalMarked(confusionMatrix, 'VADER sentiment', 'SVM Stance', sentimentValueLabels_regression, stanceValueLabels_regression, valueOrdering_regression)
+plot
+ggsave("C:/Users/steem/Desktop/StudiesKTH/II2202 Research Methodology and Scientific Writing/SentimentAndStance/Data Analysis/images/PredictionSentimentStance5x5.png")
+```
 
 
 
